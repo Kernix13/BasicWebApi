@@ -126,7 +126,7 @@ app.MapGet("/", () => "Hello World!");
 public record Todo(int Id, string Name, DateTime DueDate, bool IsCompleted)
 ```
 
-Using statements in `Program.cs` & a Todo List
+### Using statements in `Program.cs` & a Todo List
 
 ```cs
 // Results needs the following using statement
@@ -138,7 +138,7 @@ using Microsoft.AspNetCore.Rewrite;
 var todos = new List<Todo>();
 ```
 
-Create a route:
+### Create a route:
 
 ```cs
 // 2. GET /todos/{id}
@@ -151,7 +151,7 @@ app.MapGet("/todos/{id}", Results<Ok<Todo>, NotFound> (int id) =>
 
 - Hard code examples in the .http file to test each endpoint/route for create, upate and delete
 
-Middleware:
+### Middleware:
 
 - Logic that runs on every http request sent to the server - that is where middleware comes in
 - Middleware: a piece of code that can run before & after each request is processed
@@ -162,7 +162,7 @@ Middleware:
 - NOTE: middleware is usually registered with the `Use` keyword - indicates you want to register a middleware
 - Most ASP.NET core middleware come with some kind of options
 
-Middleware to support logging:
+### Middleware to support logging:
 
 - `app.Use()`
   - `context`: represents the current request and response
@@ -179,13 +179,20 @@ app.Use(async (context, next) =>
 });
 ```
 
-Endpoint filters:
+### Endpoint filters:
 
 - Execute common functionality on every request sent to a specific endpoint
 - That is where endpoint filters come in
 - Endpoint filters follow some of the same concepts as middleware
 - They are commonly used for - the objects passed to an endpoint or what is returned
-- Chain on `.AddEndpointFilter()`
+- Chain on `.AddEndpointFilter()` - you can chain multiple `AddEndpointFilter` statements
+- there is also `context` and `next` like with middlewares
+  - Middlewares run in your application pipelines
+  - Endpoint filters run in the context of an endpoint(s)
+- Endpoint filter for MapPost endpoint: validation - use it to make sure the Todo is not in the past or the IsCompleted is not set to `true`
+  - the body retrieves the Todo argument (`GetArgument`)
+  - also, a `new Dictionary` to capture the errors
+  - then if statements for validation and to check for errors
 
 ```cs
 // 3. POST /todos
@@ -196,24 +203,42 @@ app.MapPost("/todos", (Todo task, ITaskService service) =>
 })
 .AddEndpointFilter(async (context, next) =>
 {
-    // code here
+    // see code in Program.cs
 });
 ```
 
-Dependency injection:
+### Dependency injection:
 
 - Dependencies: are objects that other objects can depend on
   - usually implemented via C# classes and interfaces
   - Dependencies can also be referred to as Services b\c they are stored in the service container
   - A Service is a class that holds your business logic
-- injection: the process by which a referenced dependency is resolved from the service container
-- this happend either
+- Injection: the process by which a referenced dependency is resolved from the service container (?)
+- This happend either
   - when a class is constructed or
-  - the route handlers you write
+  - in the route handlers you write
+- NOTE: Singleton - a service that lasts for the lifetime of the app (?)
+
+> It seems `Services` refer to classes and/or interfaces (?)
+
+1. Create an interface
+2. Implement the interface
+3. Stopped understanding the video at this point
 
 ```cs
-// Example code here
+// Register a service
+builder.Services.AddSingleton<ITaskService>(new InMemoryTaskService());
+
+// Pass in ITaskService as a param to the routes
+// Original:
+app.MapGet("/todos", () => todos);
+// New: (see Services/InMemoryTaskService)
+app.MapGet("/todos", (ITaskService service) => service.GetTodos());
 ```
+
+> What is a DI container? Part 7 video is confusing.
+
+**7:26 she talks about using a database**
 
 <span aria-hidden="true"><br></span>
 
@@ -221,10 +246,10 @@ Dependency injection:
 
 Below are code blocks for the simpler code used in the beginning of the video series. The final code in the files were changed by the end of the series.
 
-POST route in `Program.cs`:
+### POST route in `Program.cs`:
 
 ```cs
-// 3. POST /todos
+// 3. POST /todos - see line 40 in Program.cs
 app.MapPost("/todos", (Todo task) =>
 {
     todos.Add(task);
@@ -232,13 +257,13 @@ app.MapPost("/todos", (Todo task) =>
 });
 ```
 
-GET routes
+### GET routes
 
 ```cs
-// 1. GET /todos
+// 1. GET /todos - see line 28 in Program.cs
 app.MapGet("/todos", () => todos);
 
-// 2. GET /todos/{id}
+// 2. GET /todos/{id} - see line 31 in Program.cs
 app.MapGet("/todos/{id}", Results<Ok<Todo>, NotFound> (int id) =>
 {
     var targetTodo = todos.SingleOrDefault(todo => id == todo.Id)
@@ -248,10 +273,10 @@ app.MapGet("/todos/{id}", Results<Ok<Todo>, NotFound> (int id) =>
 });
 ```
 
-DELETE route:
+### DELETE route:
 
 ```cs
-// 4. DELETE /todos/{id}
+// 4. DELETE /todos/{id} - see line 66 in Program.cs
 app.MapDelete("/todos/{id}", (int id) =>
 {
     todos.RemoveAll(todo => id == todo.Id);
