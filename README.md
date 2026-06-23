@@ -118,7 +118,7 @@ app.MapGet("/", () => "Hello World!");
 ```
 
 - Create a type for Todos using a record (in `Models/Todo.cs`)
-- Click the play button top right in `Program.cs`, which opens a browser at `http://localhost:5135/` - make sure to add `todos` to the end of that URL.
+- Run `dotnet run` or click the Play button top right in `Program.cs`, then open a browser to `http://localhost:5136/todos`.
 - Or use the `.http` file to send requests.
 
 ```cs
