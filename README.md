@@ -191,6 +191,11 @@ Endpoint filters:
 // 3. POST /todos
 app.MapPost("/todos", (Todo task, ITaskService service) =>
 {
+    service.AddTodo(task);
+    return TypedResults.Created($"/todos/{task.Id}", task);
+})
+.AddEndpointFilter(async (context, next) =>
+{
     // code here
 });
 ```
@@ -209,6 +214,8 @@ Dependency injection:
 ```cs
 // Example code here
 ```
+
+<span aria-hidden="true"><br></span>
 
 ## Starter code that differs from the final code
 
